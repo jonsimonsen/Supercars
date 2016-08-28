@@ -136,6 +136,88 @@ class Circle(Drawable):
         """Setter for _radius"""
         self._radius = value
 
+class Line(Drawable):
+    """A class for a straight line"""
+
+    def __init__(self, posx, posy, length, width, angle, color):
+        """Setting up variables for the line.
+
+        posx, posy: x- and y-components for the startpoint of the line.
+        length:     Length of the line
+        angle:      Clockwise angle relative to positive x.
+        color:      Color of the line."""
+
+        self._pos = Vector2D(posx, posy)
+        self._length = length
+        self._width = width
+        self._angle = angle
+        self._color = color
+
+    def draw(self, layer):
+        """Draws the line onto a surface.
+
+        layer is the surface being drawn to."""
+
+        pygame.draw.line(layer, self._color, (self._pos.x, self._pos.y), (self._pos.x + math.cos(self._angle) * self._length, self._pos.y + math.sin(self._angle)*self._length), self._width)
+
+    def getLength(self):
+        """Getter for _length"""
+        return self._length
+
+    def setLength(self, value):
+        """Setter for _length"""
+        self._length = value
+
+    def getAngle(self):
+        """Getter for _angle"""
+        return self._angle
+
+    def setAngle(self, value):
+        """Setter for _angle"""
+        self._angle = value
+
+class Arc(Drawable):
+    """A class for a curved line"""
+
+    def __init__(self, posx, posy, length, width, angle, span, color):
+        """Settin up variables for the arc.
+
+        posx, posy: x and y-components for the centre point.
+        length:     Length from the centre point to the arc.
+        angle:      Clockwise angle relative to positive x for the start of the arc.
+        span:       Number of radians the arc spans across
+        color:      Color of the arc."""
+
+        self._pos = Vector2D(posx, posy)
+        self._length = length
+        self._width = width
+        self._angle = angle
+        self._span = span
+        self._color = color
+
+    def draw(self, layer):
+        """Draws the arc onto a surface.
+
+        layer is the surface being drawn to."""
+
+        pygame.draw.arc(layer, self._color, (self._pos.x - self._length, self._pos.y - self._length, 2 * self._length, 2 * self._length), self._angle, self._angle + self._span, self._width)
+
+    def getLength(self):
+        """Getter for _length"""
+        return self._length
+
+    def setLength(self, value):
+        """Setter for _length"""
+        self._length = value
+
+    def getAngle(self):
+        """Getter for _angle"""
+        return self._angle
+
+    def setAngle(self, value):
+        """Setter for _angle"""
+        self._angle = value
+
 #Classes for moveable objects
 
 class MovingObject(Drawable):
@@ -217,7 +299,6 @@ class Supercar(Rectangle, MovingObject):
         self._rotation = rotation
         self._bgcolor = bgcolor
         self._wcolor = wcolor
-        self._color = color
         self._layer = self.draw()
         self._spawnlocation = self._pos
         self._keys = self.makeControls()
@@ -267,7 +348,7 @@ class Supercar(Rectangle, MovingObject):
                  (IMAGE, KEYTEXT[1], pygame.K_RIGHT),
                  (IMAGE, KEYTEXT[2], pygame.K_UP)])
 
-    def update(self, anglespeed, speedlimit, keys):
+    def update(self, anglespeed, speedlimit, keys, obstacles):
         """Updates the car's velocity and rotation based on user input and
         speed limit.
 
@@ -300,6 +381,9 @@ class Supercar(Rectangle, MovingObject):
                         self._rightTurn = False
                     if not pygame.key.get_pressed()[keys[2][2]]:
                         self._thrust = False
+
+        self.bounce()
+        self.collide(obstacles)
                 
         if self._leftTurn and self._rightTurn:
             pass
@@ -328,3 +412,46 @@ class Supercar(Rectangle, MovingObject):
 
         if self._velocity.magnitude() > SPEEDLIMIT:
             self._velocity = self._velocity.normalized() * SPEEDLIMIT
+
+    def collide(self, obstacles):
+        """Changes the velocity of the supercar when hitting one of the obstacles."""
+
+        for thing in obstacles:
+            if isinstance(thing, Circle):
+                #Test if intersection is possible
+                delta = Vector2D(self._w / 2, self._h / 2)
+                dist = thing._pos - (self._pos + delta)
+                if dist.magnitude() < thing._radius + delta.magnitude():
+                    #Check each corner for intersection
+                    ul = thing._pos - self._pos
+                    ur = thing._pos - (self._pos + Vector2D(self._w, 0))
+                    bl = thing._pos - (self._pos + Vector2D(0, self._h))
+                    br = thing._pos - (self._pos + Vector2D(self._w, self._h))
+                    corners = (ul, ur, bl, br)
+
+                    for pos in corners:
+                        if pos.magnitude() < thing._radius:
+                            self._pos = self._pos - self._velocity
+                            self._velocity *= -1
+                            break
+
+    def bounce(self):
+        """Changes the velocity of the supercar when hitting the screen boundary. Returns True if changed, False otherwise."""
+
+        if self._pos.x < 0:
+            self._velocity.x *= -1
+            self._pos.x *= -1
+            #self._thrust = False    #Make sure that the player can't accelerate directly after an impact
+        elif self._pos.x > RES_X - self._w:
+            self._velocity.x *= -1
+            self._pos.x = (2 * (RES_X - self._w)) - self._pos.x
+            #self._thrust = False
+
+        if self._pos.y < 0:
+            self._velocity.y *= -1
+            self._pos.y *= -1
+            #self._thrust = False
+        elif self._pos.y > RES_Y - self._h:
+            self._velocity.y *= -1
+            self._pos.y = (2 * (RES_Y - self._h)) - self._pos.y
+            #self._thrust = False
