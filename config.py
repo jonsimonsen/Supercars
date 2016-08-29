@@ -6,6 +6,9 @@ RES_X = 1280
 RES_Y = 960
 CAPTION = 'Supercars'
 CREDITS = 'by JSI'
+FONT = 'arial'
+FONTSIZE = 16
+BIGSIZE = 32
 
 #Colors
 

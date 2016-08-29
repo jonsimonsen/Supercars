@@ -18,9 +18,53 @@ class Game(object):
         self._ground = self.makeGround()
         self._obstacles = self.makeObstacles()
         self._checkpoints = self.makeCheckpoints()
+        self._font = self.makeFont(FONT, FONTSIZE)
 
         self.run()
 
+    def makeMenu(self):
+        """Makes a menu near the center of the screen."""
+
+        i = [('laps:'), ('fastest:'), ('latest:')]
+        j = [str(self._car._laps), str(self._car._fastest), str(self._car._latest)]
+
+        pygame.draw.rect(self._screen, LGRAY, (RES_X / 2 - 150, RES_Y / 2 - 100, 300, 200))
+
+        textbox = self.makeTextbox('Supercars', BLACK, font = makeFont(FONT, BIGSIZE))
+        self._screen.blit(textbox, (RES_X / 2 - 75, RES_Y / 2 - 75))
+        
+        item_posx = RES_X / 2 - 60
+        item_posy = RES_Y / 2 - 60
+
+        for label in i:
+            textbox = self.makeTextbox(label, BLACK)
+            item_posy += 2 * textbox.get_height()
+            self._screen.blit(textbox, (item_posx, item_posy))
+
+        item_posx += 80
+        item_posy = RES_Y / 2 - 60
+
+        for info in j:
+            textbox = self.makeTextbox(info, WHITE, BLACK)
+            item_posy += 2 * textbox.get_height()
+            self._screen.blit(textbox, (item_posx, item_posy))            
+
+    def makeFont(self, font, size):
+        """Initialize the font for game text"""
+
+        font = pygame.font.SysFont(font, size)
+        return font
+
+    def makeTextbox(self, message, color, bgcolor = None, font = None):
+        """Make a textbox displaying message"""
+
+        if font == None:
+            font = self._font
+        if bgcolor == None:
+            return font.render(message, True, color)
+        else:
+            return font.render(message, True, color, bgcolor)
+        
     def makeGround(self):
         """Makes a track for the game."""
 
@@ -110,6 +154,8 @@ class Game(object):
                 thing.draw(self._screen)
             for cp in self._checkpoints:
                 cp.draw(self._screen)
+
+            self.makeMenu()
                 
             self._screen.blit(carlayer, (self._car._pos.x, self._car._pos.y))
             self._clock.tick(FPS)

@@ -336,10 +336,10 @@ class Supercar(Rectangle, MovingObject):
                                         points[0]._pos, points[0]._length, points[0]._angle):
                 self._laps -= 1
                 self._checkpoints = 0
-                self._latest = (self._frames + 1) / FPS
+                self._latest = round((self._frames + 1) / FPS, 2)
                 if self._fastest < 0 or self._latest < self._fastest:
                     self._fastest = self._latest
-                print(str(self._fastest), str(self._latest))
+                #print(str(self._fastest), str(self._latest))
                 self._frames = 0
         else:
             if intersect_rectangle_line(self._pos, self._w, self._h,
