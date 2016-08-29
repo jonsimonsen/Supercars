@@ -17,6 +17,7 @@ class Game(object):
                              Vector2D(0, 0), RED, WIDTH, LENGTH, 180, bgcolor = WHITE)
         self._ground = self.makeGround()
         self._obstacles = self.makeObstacles()
+        self._checkpoints = self.makeCheckpoints()
 
         self.run()
 
@@ -54,13 +55,29 @@ class Game(object):
 
         obstacles = list()
 
-        obstacles.append(Line(RES_X / 2, 200, 200, 10, math.pi * 3 / 2, WHITE))
         obstacles.append(Circle(300, 300, 100, BLUE))
         obstacles.append(Circle(300, RES_Y - 300, 100, BLUE))
         obstacles.append(Circle(RES_X - 300, RES_Y - 300, 100, BLUE))
         obstacles.append(Circle(RES_X - 300, 300, 100, BLUE))
 
         return obstacles
+
+    def makeCheckpoints(self):
+        """Generate the checkpoints that cars have to cross on each lap."""
+
+        cp = list()
+
+        cp.append(Line(RES_X / 2, 200, 200, 10, math.pi * 3 / 2, WHITE))
+        cp.append(Line(300, 200, 200, 4, math.pi * 3 / 2, YELLOW))
+        cp.append(Line(200, 300, 200, 4, math.pi, YELLOW))
+        cp.append(Line(200, RES_Y - 300, 200, 4, math.pi, YELLOW))
+        cp.append(Line(300, RES_Y - 200, 200, 4, math.pi / 2, YELLOW))
+        cp.append(Line(RES_X - 300, RES_Y - 200, 200, 4, math.pi / 2, YELLOW))
+        cp.append(Line(RES_X - 200, RES_Y - 300, 200, 4, 0, YELLOW))
+        cp.append(Line(RES_X - 200, 300, 200, 4, 0, YELLOW))
+        cp.append(Line(RES_X - 300, 200, 200, 4, math.pi * 3 / 2, YELLOW))
+
+        return cp
 
     def makeScreen(self):
         """Initializes the pygame display (game window)"""
@@ -80,7 +97,7 @@ class Game(object):
         """Running the game"""
 
         while True:
-            self._car.update(ROTATION_STEP, SPEEDLIMIT, self._car._keys, self._obstacles)
+            self._car.update(ROTATION_STEP, SPEEDLIMIT, self._car._keys, self._obstacles, self._checkpoints)
  
             #clearing the layer and redrawing the background
             pygame.draw.rect(self._screen, LGRAY, (0, 0, RES_X, RES_Y))
@@ -91,6 +108,8 @@ class Game(object):
                 area.draw(self._screen)
             for thing in self._obstacles:
                 thing.draw(self._screen)
+            for cp in self._checkpoints:
+                cp.draw(self._screen)
                 
             self._screen.blit(carlayer, (self._car._pos.x, self._car._pos.y))
             self._clock.tick(FPS)

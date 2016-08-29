@@ -1,5 +1,5 @@
 import pygame, sys, math
-from precode import Vector2D, intersect_rectangles
+from precode import Vector2D, intersect_rectangles, intersect_rectangle_line
 from config import *
 
 #Classes for drawable objects
@@ -302,6 +302,11 @@ class Supercar(Rectangle, MovingObject):
         self._layer = self.draw()
         self._spawnlocation = self._pos
         self._keys = self.makeControls()
+        self._laps = 5          #Laps to go
+        self._checkpoints = -1  #Index of latest checkpoint
+        self._frames = 0       #Number of frames for this lap
+        self._fastest = -1      #Fastest lap
+        self._latest = 0       #Latest lap
 
     def draw(self):
         """Generates a surface with the supercar drawn onto it.
@@ -315,6 +320,36 @@ class Supercar(Rectangle, MovingObject):
         #pygame.draw.polygon(surface, self._color, self._points)
 
         return surface
+
+    def checkpoint(self, points):
+        """When intersecting with a checkpoint, handle appropriately"""
+
+        self._frames += 1
+
+        if self._checkpoints < 0:
+            if intersect_rectangle_line(self._pos, self._w, self._h,
+                                        points[0]._pos, points[0]._length, points[0]._angle):
+                self._checkpoints = 0
+                self._frames = 0    #Consider using fractions for higher accuracy
+        elif self._checkpoints == len(points) - 1:
+            if intersect_rectangle_line(self._pos, self._w, self._h,
+                                        points[0]._pos, points[0]._length, points[0]._angle):
+                self._laps -= 1
+                self._checkpoints = 0
+                self._latest = (self._frames + 1) / FPS
+                if self._fastest < 0 or self._latest < self._fastest:
+                    self._fastest = self._latest
+                print(str(self._fastest), str(self._latest))
+                self._frames = 0
+        else:
+            if intersect_rectangle_line(self._pos, self._w, self._h,
+                                        points[self._checkpoints + 1]._pos, points[self._checkpoints + 1]._length, points[self._checkpoints + 1]._angle):
+                self._checkpoints += 1
+
+        #for i in range(len(points)):
+        #    if intersect_rectangle_line(self._pos, self._w, self._h,
+        #                                points[i]._pos, points[i]._length, points[i]._angle):
+        #        print(str(i))
 
     def _drawWheels(self, layer):
         """Draws wheels onto layer"""
@@ -348,7 +383,7 @@ class Supercar(Rectangle, MovingObject):
                  (IMAGE, KEYTEXT[1], pygame.K_RIGHT),
                  (IMAGE, KEYTEXT[2], pygame.K_UP)])
 
-    def update(self, anglespeed, speedlimit, keys, obstacles):
+    def update(self, anglespeed, speedlimit, keys, obstacles, checkpoints):
         """Updates the car's velocity and rotation based on user input and
         speed limit.
 
@@ -384,6 +419,7 @@ class Supercar(Rectangle, MovingObject):
 
         self.bounce()
         self.collide(obstacles)
+        self.checkpoint(checkpoints)
                 
         if self._leftTurn and self._rightTurn:
             pass
