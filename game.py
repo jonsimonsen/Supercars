@@ -25,16 +25,16 @@ class Game(object):
     def makeMenu(self):
         """Makes a menu near the center of the screen."""
 
-        i = [('laps:'), ('fastest:'), ('latest:')]
-        j = [str(self._car._laps), str(self._car._fastest), str(self._car._latest)]
+        i = [('laps:'), ('fastest:'), ('latest:'), ('total:')]
+        j = [str(self._car._laps), str(self._car._fastestLap), str(self._car._latestLap), str(self._car._totalLap)]
 
         pygame.draw.rect(self._screen, LGRAY, (RES_X / 2 - 150, RES_Y / 2 - 100, 300, 200))
 
         textbox = self.makeTextbox('Supercars', BLACK, font = makeFont(FONT, BIGSIZE))
-        self._screen.blit(textbox, (RES_X / 2 - 75, RES_Y / 2 - 75))
+        self._screen.blit(textbox, (RES_X / 2 - 75, RES_Y / 2 - 90))
         
         item_posx = RES_X / 2 - 60
-        item_posy = RES_Y / 2 - 60
+        item_posy = RES_Y / 2 - 80
 
         for label in i:
             textbox = self.makeTextbox(label, BLACK)
@@ -42,7 +42,7 @@ class Game(object):
             self._screen.blit(textbox, (item_posx, item_posy))
 
         item_posx += 80
-        item_posy = RES_Y / 2 - 60
+        item_posy = RES_Y / 2 - 80
 
         for info in j:
             textbox = self.makeTextbox(info, WHITE, BLACK)

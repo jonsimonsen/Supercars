@@ -302,11 +302,13 @@ class Supercar(Rectangle, MovingObject):
         self._layer = self.draw()
         self._spawnlocation = self._pos
         self._keys = self.makeControls()
-        self._laps = 5          #Laps to go
+        self._running = False   #Wait for the player to start moving before starting the clock
+        self._laps = 10          #Laps to go
         self._checkpoints = -1  #Index of latest checkpoint
         self._frames = 0       #Number of frames for this lap
-        self._fastest = -1      #Fastest lap
-        self._latest = 0       #Latest lap
+        self._fastestLap = -1      #Fastest lap time
+        self._latestLap = 0       #Latest lap time
+        self._totalLap = 0      #Total lap time
 
     def draw(self):
         """Generates a surface with the supercar drawn onto it.
@@ -330,16 +332,18 @@ class Supercar(Rectangle, MovingObject):
             if intersect_rectangle_line(self._pos, self._w, self._h,
                                         points[0]._pos, points[0]._length, points[0]._angle):
                 self._checkpoints = 0
+                self._totalLap = round((self._frames) / FPS, 2)
                 self._frames = 0    #Consider using fractions for higher accuracy
         elif self._checkpoints == len(points) - 1:
             if intersect_rectangle_line(self._pos, self._w, self._h,
                                         points[0]._pos, points[0]._length, points[0]._angle):
                 self._laps -= 1
                 self._checkpoints = 0
-                self._latest = round((self._frames + 1) / FPS, 2)
-                if self._fastest < 0 or self._latest < self._fastest:
-                    self._fastest = self._latest
+                self._latestLap = round((self._frames + 1) / FPS, 2)
+                if self._fastestLap < 0 or self._latestLap < self._fastestLap:
+                    self._fastestLap = self._latestLap
                 #print(str(self._fastest), str(self._latest))
+                self._totalLap += self._latestLap
                 self._frames = 0
         else:
             if intersect_rectangle_line(self._pos, self._w, self._h,
@@ -403,6 +407,7 @@ class Supercar(Rectangle, MovingObject):
                 pass
             else:
                 if event.type == pygame.KEYDOWN:
+                    self._running = True    #Make sure that the clock has started
                     if pygame.key.get_pressed()[keys[0][2]]:
                         self._leftTurn = True
                     if pygame.key.get_pressed()[keys[1][2]]:
@@ -417,21 +422,22 @@ class Supercar(Rectangle, MovingObject):
                     if not pygame.key.get_pressed()[keys[2][2]]:
                         self._thrust = False
 
-        self.bounce()
-        self.collide(obstacles)
-        self.checkpoint(checkpoints)
-                
-        if self._leftTurn and self._rightTurn:
-            pass
-        elif self._leftTurn:
-            self._rotation -= anglespeed
-        elif self._rightTurn:
-            self._rotation += anglespeed
+        if self._running:
+            self.bounce()
+            self.collide(obstacles)
+            self.checkpoint(checkpoints)
+                    
+            if self._leftTurn and self._rightTurn:
+                pass
+            elif self._leftTurn:
+                self._rotation -= anglespeed
+            elif self._rightTurn:
+                self._rotation += anglespeed
 
-        if self._thrust == True:
-            self._velocity += self.heading()
+            if self._thrust == True:
+                self._velocity += self.heading()
 
-        self.limit_velocity()
+            self.limit_velocity()
 
         return
 

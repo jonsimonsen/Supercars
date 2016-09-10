@@ -29,3 +29,6 @@ Issues: </br>
   -The code can be cleaned up. </br>
   -The vector library or a replacement could be included. </br>
   
+v0_25: </br>
+  -Added total time to the menu. </br>
+  -Received permission to upload a Vector library that allows the game to actually be played (precode.py). </br>
