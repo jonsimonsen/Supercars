@@ -43,6 +43,11 @@ LENGTH = 50
 CAR_ROTATION = 270
 ROTATION_STEP = 10  #Degrees per cycle of player input
 
+#Tracks
+
+MARK_COLOR = WHITE
+MARK_WIDTH = 4
+
 #Keys
 
 KEYTEXT = ['turn left', 'turn right', 'thrust']

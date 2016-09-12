@@ -5,55 +5,61 @@ from config import *
 #Classes for drawable objects
 
 class Drawable(object):
-    """A drawable object"""
+    """A drawable object (as an abstract data type)."""
 
     def __init__(self):
-        """default initialization of the ADT"""
+        """default initialization of the ADT."""
 
         print("please don't try to initialize an object of type ADT.")
 
     def draw(self, layer):
         """Default drawing method for this kind of datatype.
 
-        layer is the surface to be drawn to."""
+        layer: The surface to be drawn to.
+        """
 
         print("please don't try to draw an object of type ADT.")
 
     def erase(self, color, layer):
-        """Draws the calling object onto layer using color
-        without changing its own color (_color)."""
+        """Draws the object. To actually erase it, the given color must match the background color.
 
+        color: The color to draw the object with. To erase, this should match the background.
+        layer: The layer to draw the object onto.
+        """
+
+        #To avoid permanently changing the object, its actual color must be stored until it has been drawn with the given color.
         temp = self._color
         self._color = color
         self.draw(layer)
         self._color = temp
 
     def getPos(self):
-        """Getter for _pos"""
+        """Getter for _pos."""
         return self._pos
 
     def setPos(self, value):
-        """Setter for _x"""
+        """Setter for _pos."""
         self._pos = value
 
     def getColor(self):
-        """Getter for _color"""
+        """Getter for _color."""
         return self._color
 
     def setColor(self, value):
-        """Setter for _color"""
+        """Setter for _color."""
         self._color = value
 
 class Rectangle(Drawable):
-    """A class for general rectangle objects"""
+    """A general rectangle object."""
 
     def __init__(self, width, height, color, x = 0, y = 0):
-        """Setting up variables for the rectangle.
+        """Create a rectangle.
 
         x, y:           x- and y-components used for a Vector2D object
                         pointing to the upper left corner of the rectangle.
-        width, height:  Width and height of the rectangle
-        color:          Color of the rectangle"""
+        width, height:  Width and height of the rectangle.
+        color:          Color of the rectangle.
+        """
 
         self._w = width             #width
         self._h = height            #height
@@ -63,27 +69,29 @@ class Rectangle(Drawable):
     def draw(self, layer, offset = Vector2D(0, 0)):
         """Draws the rectangle.
 
-        layer is the surface being drawn to.
-        offset is an offset between the rectangle's position (absolute) and
-        the position of the rectangle on a specific surface (relative)."""
+        layer:  The surface being drawn to.
+        offset: An offset between the rectangle's position (absolute) and
+                the position of the rectangle on a specific surface (relative).
+        """
 
         pygame.draw.rect(layer, self._color,(int(self._pos.x + offset.x), int(self._pos.y + offset.y), self._w, self._h))
 
     def objectCollision(self, other):   #TODO: should be updated
-        """Checks for collision between self and other where other can be represented as
-        a rectangle or other is an object of the Circle class.
+        """Checks for collision between the rectangle and another object.
 
-        other is another rectangular object with variables _pos, _w and _h
-        (position as a Vector2D, width and height) or an object of class Circle
+        other:  Another object. It is assumed that this is a rectangle or a circle.
+                A type error will be raised if it isn't.
 
-        Returns True if the rectangle collides with the other object.
-        False is returned otherwise"""
+        Returns True if the rectangle collides with the other object. False otherwise.
+        """
 
         if isinstance(other, Circle):   #TODO: See if this needs to be altered
             collision = precode.intersect_rectangle_circle(self._pos, self._w, self._h, other._pos, other._radius, Vector2D(1,1))
-        else:
+        elif isinstance(other, Rectangle):
             collision = intersect_rectangles(self._pos, self._w, self._h,
                                              other._pos, other._w, other._h)
+        else:
+            raise TypeError("other must be an object of class Rectangle, class Circle or a subclass of these.")
 
         if collision:
             return True
@@ -91,61 +99,67 @@ class Rectangle(Drawable):
             return False
 
     def getW(self):
-        """Getter for _w"""
+        """Getter for _w."""
         return self._w
     
     def setW(self, value):
-        """Setter for _w"""
+        """Setter for _w."""
         self._w = value
         
     def getH(self):
-        "Getter for _h"""
+        "Getter for _h."""
         return self._h
 
     def setH(self, value):
-        "Setter for _h"""
+        "Setter for _h."""
         self._h = value
 
 class Circle(Drawable):
-    """A class for general circle objects"""
+    """A general circle object."""
 
     def __init__(self, posx, posy, radius, color):
-        """Setting up variables for the circle.
+        """Create a circle.
 
         posx, posy: x- and y-components used for a Vector2D object
                     pointing to the center of the circle.
-        radius:     Radius of the circle
-        color:      Color of the circle"""
+        radius:     Radius of the circle.
+        color:      Color of the circle.
+        """
 
         self._pos = Vector2D(posx, posy)
         self._radius = radius
         self._color = color
 
     def draw(self, layer):
-        """Draws the circle onto a surface.
+        """Draws the circle.
 
-        layer is the surface being drawn to."""
+        layer: The surface being drawn to.
+        """
 
         pygame.draw.circle(layer, self._color, (int(self._pos.x), int(self._pos.y)), self._radius)
 
     def getRadius(self):
-        """Getter for _radius"""
+        """Getter for _radius."""
         return self._radius
 
     def setRadius(self, value):
-        """Setter for _radius"""
+        """Setter for _radius."""
         self._radius = value
 
+#A base class for Line and Arc could be considered.
+
 class Line(Drawable):
-    """A class for a straight line"""
+    """A straight line."""
 
     def __init__(self, posx, posy, length, width, angle, color):
-        """Setting up variables for the line.
+        """Create a straight line.
 
         posx, posy: x- and y-components for the startpoint of the line.
-        length:     Length of the line
+        length:     Length of the line.
+        width:      Width of the line.
         angle:      Clockwise angle relative to positive x.
-        color:      Color of the line."""
+        color:      Color of the line.
+        """
 
         self._pos = Vector2D(posx, posy)
         self._length = length
@@ -154,39 +168,52 @@ class Line(Drawable):
         self._color = color
 
     def draw(self, layer):
-        """Draws the line onto a surface.
+        """Draws the line.
 
-        layer is the surface being drawn to."""
+        layer: The surface being drawn to.
+        """
 
-        pygame.draw.line(layer, self._color, (self._pos.x, self._pos.y), (self._pos.x + math.cos(self._angle) * self._length, self._pos.y + math.sin(self._angle)*self._length), self._width)
+        pygame.draw.line(layer, self._color, (self._pos.x, self._pos.y),
+                         (self._pos.x + math.cos(self._angle) * self._length, self._pos.y + math.sin(self._angle)*self._length),
+                         self._width)
 
     def getLength(self):
-        """Getter for _length"""
+        """Getter for _length."""
         return self._length
 
     def setLength(self, value):
-        """Setter for _length"""
+        """Setter for _length."""
         self._length = value
 
+    def getWidth(self):
+        """Getter for _width."""
+        return self._width
+
+    def setWidth(self, value):
+        """Setter for _width."""
+        self._width = value
+
     def getAngle(self):
-        """Getter for _angle"""
+        """Getter for _angle."""
         return self._angle
 
     def setAngle(self, value):
-        """Setter for _angle"""
+        """Setter for _angle."""
         self._angle = value
 
 class Arc(Drawable):
-    """A class for a curved line"""
+    """A curved line (circular curvature)."""
 
     def __init__(self, posx, posy, length, width, angle, span, color):
-        """Settin up variables for the arc.
+        """Create an arc.
 
-        posx, posy: x and y-components for the centre point.
+        posx, posy: x and y-components for the center point.
         length:     Length from the centre point to the arc.
+        width:      Width of the arc. Grows towards the center point.
         angle:      Clockwise angle relative to positive x for the start of the arc.
-        span:       Number of radians the arc spans across
-        color:      Color of the arc."""
+        span:       Number of radians the arc spans across.
+        color:      Color of the arc.
+        """
 
         self._pos = Vector2D(posx, posy)
         self._length = length
@@ -196,40 +223,60 @@ class Arc(Drawable):
         self._color = color
 
     def draw(self, layer):
-        """Draws the arc onto a surface.
+        """Draws the arc.
 
-        layer is the surface being drawn to."""
+        layer: The surface being drawn to.
+        """
 
-        pygame.draw.arc(layer, self._color, (self._pos.x - self._length, self._pos.y - self._length, 2 * self._length, 2 * self._length), self._angle, self._angle + self._span, self._width)
+        pygame.draw.arc(layer, self._color,
+                        (self._pos.x - self._length, self._pos.y - self._length, 2 * self._length, 2 * self._length),
+                        self._angle, self._angle + self._span, self._width)
 
     def getLength(self):
-        """Getter for _length"""
+        """Getter for _length."""
         return self._length
 
     def setLength(self, value):
-        """Setter for _length"""
+        """Setter for _length."""
         self._length = value
 
+    def getWidth(self):
+        """Getter for _width."""
+        return self._width
+
+    def setWidth(self, value):
+        """Setter for _width."""
+        self._width = value
+
     def getAngle(self):
-        """Getter for _angle"""
+        """Getter for _angle."""
         return self._angle
 
     def setAngle(self, value):
-        """Setter for _angle"""
+        """Setter for _angle."""
         self._angle = value
+
+    def getSpan(self):
+        """Getter for _span."""
+        return self._span
+
+    def setSpan(self, value):
+        """Setter for _span."""
+        self._span = value
 
 #Classes for moveable objects
 
 class MovingObject(Drawable):
-    """A moveable object"""
+    """A moveable object."""
 
     def move(self):
-        """Moves the object"""
+        """Moves the object."""
 
         self._pos += self._velocity
 
     def collide(self, width, height, leftwall_x = 0, ceiling_y = 0):
         """Changes velocity and position of the object if it hits a wall.
+
         Currently assumes a rectangular object with _pos a Vector2D
         pointing to its upper left corner. It also produces approximate results
         for circular objects.
@@ -239,7 +286,8 @@ class MovingObject(Drawable):
         width:      Difference between minimum x-component and right wall
         height:     Difference between minimum y-component and floor
 
-        Returns True if a collision occurs. False otherwise"""
+        Returns True if a collision occurs. False otherwise
+        """
 
         collision = False
 
@@ -303,7 +351,7 @@ class Supercar(Rectangle, MovingObject):
         self._spawnlocation = self._pos
         self._keys = self.makeControls()
         self._running = False   #Wait for the player to start moving before starting the clock
-        self._laps = 3          #Laps to go
+        self._laps = 10          #Laps to go
         self._checkpoints = -1  #Index of latest checkpoint
         self._frames = 0       #Number of frames for this lap
         self._fastestLap = -1      #Fastest lap time
@@ -347,7 +395,8 @@ class Supercar(Rectangle, MovingObject):
                 self._frames = 0
         else:
             if intersect_rectangle_line(self._pos, self._w, self._h,
-                                        points[self._checkpoints + 1]._pos, points[self._checkpoints + 1]._length, points[self._checkpoints + 1]._angle):
+                                        points[self._checkpoints + 1]._pos, points[self._checkpoints + 1]._length,
+                                        points[self._checkpoints + 1]._angle):
                 self._checkpoints += 1
 
         #for i in range(len(points)):

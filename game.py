@@ -12,7 +12,7 @@ class Game(object):
     """A class for running the Supercars game."""
 
     def __init__(self):
-        """Setting up variables for Supercars."""
+        """Create a new game of Supercars."""
 
         self._screen = self.makeScreen()    #initialize game window
         self._clock = pygame.time.Clock()   #Initialising game clock(used to make the animation run smoothly)
@@ -28,7 +28,7 @@ class Game(object):
     def makeMenu(self):
         """Make a menu near the center of the screen. Will overwrite previously drawn objects."""
 
-        i = [('laps:'), ('fastest:'), ('latest:'), ('total:')]
+        i = [('laps to go:'), ('fastest:'), ('latest:'), ('total time:')]
         j = [str(self._car._laps), str(self._car._fastestLap), str(self._car._latestLap), str(self._car._totalLap)]
 
         pygame.draw.rect(self._screen, LGRAY, (MENU_X, MENU_Y, MENU_W, MENU_H))
@@ -101,14 +101,14 @@ class Game(object):
         areas.append(Rectangle(200, RES_Y - 600, BLACK, RES_X - 200, 300))
 
         #Make markings
-        areas.append(Arc(300, 300, 200, 4, math.pi / 2, math.pi / 2, WHITE))
-        areas.append(Arc(300, RES_Y - 300, 200, 4, math.pi, math.pi / 2, WHITE))
-        areas.append(Arc(RES_X - 300, RES_Y - 300, 200, 4, math.pi * 3 / 2, math.pi / 2, WHITE))
-        areas.append(Arc(RES_X - 300, 300, 200, 4, 0, math.pi / 2, WHITE))
-        areas.append(Line(RES_X - 320, 100, RES_X - 640, 4, math.pi, WHITE))
-        areas.append(Line(100, 320, RES_Y - 640, 4, math.pi / 2, WHITE))
-        areas.append(Line(320, RES_Y - 100, RES_X - 640, 4, 0, WHITE))
-        areas.append(Line(RES_X - 100, RES_Y - 320, RES_Y - 640, 4, math.pi * 3 / 2, WHITE))
+        areas.append(Arc(300, 300, 200 + (MARK_WIDTH / 2), MARK_WIDTH, math.pi / 2, math.pi / 2, MARK_COLOR))
+        areas.append(Arc(300, RES_Y - 300, 200 + (MARK_WIDTH / 2), MARK_WIDTH, math.pi, math.pi / 2, MARK_COLOR))
+        areas.append(Arc(RES_X - 300, RES_Y - 300, 200 + (MARK_WIDTH / 2), MARK_WIDTH, math.pi * 3 / 2, math.pi / 2, MARK_COLOR))
+        areas.append(Arc(RES_X - 300, 300, 200 + (MARK_WIDTH / 2), MARK_WIDTH, 0, math.pi / 2, MARK_COLOR))
+        areas.append(Line(RES_X - 320, 100, RES_X - 640, MARK_WIDTH, math.pi, MARK_COLOR))
+        areas.append(Line(100, 320, RES_Y - 640, MARK_WIDTH, math.pi / 2, MARK_COLOR))
+        areas.append(Line(320, RES_Y - 100, RES_X - 640, MARK_WIDTH, 0, MARK_COLOR))
+        areas.append(Line(RES_X - 100, RES_Y - 320, RES_Y - 640, MARK_WIDTH, math.pi * 3 / 2, MARK_COLOR))
 
         #make grass
         areas.append(Rectangle(RES_X - 600, RES_Y - 400, GREEN, 300, 200))
