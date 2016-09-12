@@ -303,7 +303,7 @@ class Supercar(Rectangle, MovingObject):
         self._spawnlocation = self._pos
         self._keys = self.makeControls()
         self._running = False   #Wait for the player to start moving before starting the clock
-        self._laps = 10          #Laps to go
+        self._laps = 3          #Laps to go
         self._checkpoints = -1  #Index of latest checkpoint
         self._frames = 0       #Number of frames for this lap
         self._fastestLap = -1      #Fastest lap time
@@ -396,7 +396,7 @@ class Supercar(Rectangle, MovingObject):
         keys:       list of lists where the third element (index 2) needs to be a
                     pygame key constant corresponding to a legal input from the player.
         
-        Returns nothing"""
+        Returns True if there are more laps to drive. False otherwise."""
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -439,7 +439,10 @@ class Supercar(Rectangle, MovingObject):
 
             self.limit_velocity()
 
-        return
+        if self._laps <= 0:
+            return False
+        else:
+            return True
 
     def heading(self):
         """Determines the direction the car is pointing.
