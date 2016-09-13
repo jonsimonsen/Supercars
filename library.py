@@ -1,14 +1,16 @@
 """A collection of functions. Originally used in the game "Mayhem in space".
 
 Created by Jon Simonsen
-Current version dated 26 April 2013"""
+Current version dated 26 April 2013
+"""
 
 import pygame
 
 def makeFont(font, size):
-    """Generates a pygame font.
+    """Generate a pygame font.
 
-    Returns the font object."""
+    Returns the font object.
+    """
 
     font = pygame.font.SysFont(font, size)
     return font
@@ -16,10 +18,11 @@ def makeFont(font, size):
 def rotate_center(layer, angle):
     """Rotates a pygame surface while keeping its center and size
 
-    layer is the layer to be rotated
-    angle is the counter-clockwise rotation in degrees
+    layer: The layer to be rotated
+    angle: The counter-clockwise rotation in degrees
 
-    Returns the resulting surface."""
+    Returns the resulting surface.
+    """
 
     #The method is derived from an existing method from the pygame.org homepage
     newlayer = pygame.transform.rotate(layer, angle)

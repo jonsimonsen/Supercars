@@ -14,75 +14,35 @@ class Game(object):
     def __init__(self):
         """Create a new game of Supercars."""
 
-        self._screen = self.makeScreen()    #initialize game window
-        self._clock = pygame.time.Clock()   #Initialising game clock(used to make the animation run smoothly)
+        self._screen = self._makeScreen()           #Initialize game window
+        self._clock = pygame.time.Clock()           #Initialising game clock(used to make the animation run smoothly)
+        
+        self._ground = self._makeGround()           #Create background
+        self._obstacles = self._makeObstacles()     #Create obstacles
+        self._checkpoints = self._makeCheckpoints() #Create checkpoints
+        self._font = makeFont(FONT, FONTSIZE)       #Create a standard font
+
+        #Make a car for the player
         self._car = Supercar(Vector2D(int((RES_X - WIDTH) / 2) + 40, 80),
                              Vector2D(0, 0), RED, WIDTH, LENGTH, 180, bgcolor = WHITE)
-        self._ground = self.makeGround()
-        self._obstacles = self.makeObstacles()
-        self._checkpoints = self.makeCheckpoints()
-        self._font = self.makeFont(FONT, FONTSIZE)
 
-        self.run()
+        self.run()  #Run the game
 
-    def makeMenu(self):
-        """Make a menu near the center of the screen. Will overwrite previously drawn objects."""
+    def _makeScreen(self):
+        """Initializes and returns the pygame display (game window)."""
 
-        i = [('laps to go:'), ('fastest:'), ('latest:'), ('total time:')]
-        j = [str(self._car._laps), str(self._car._fastestLap), str(self._car._latestLap), str(self._car._totalLap)]
+        #Centering the display on screen (taken from pygame FAQ)
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-        pygame.draw.rect(self._screen, LGRAY, (MENU_X, MENU_Y, MENU_W, MENU_H))
+        #Starting pygame and setting up the display(game window)
 
-        textbox = self.makeTextbox('Supercars', BLACK, font = makeFont(FONT, BIGSIZE))
-        self._screen.blit(textbox, (MENU_HEAD_X, MENU_HEAD_Y))
-        
-        item_posx = MENU_HEAD_X + 15
-        item_posy = MENU_COL_Y
+        pygame.init()
+        gamescreen = pygame.display.set_mode((RES_X, RES_Y))
+        pygame.display.set_caption(CAPTION)
+  
+        return gamescreen
 
-        for label in i:
-            textbox = self.makeTextbox(label, BLACK)
-            item_posy += 2 * textbox.get_height()
-            self._screen.blit(textbox, (item_posx, item_posy))
-
-        item_posx += 80
-        item_posy = MENU_COL_Y
-
-        for info in j:
-            textbox = self.makeTextbox(info, WHITE, BLACK)
-            item_posy += 2 * textbox.get_height()
-            self._screen.blit(textbox, (item_posx, item_posy))            
-
-    def makeFont(self, font, size):
-        """Initialize the font for game text.
-
-        font: Type of font.
-        size: Size of font.
-
-        returns the font (as a pygame font).
-        """
-
-        font = pygame.font.SysFont(font, size)
-        return font
-
-    def makeTextbox(self, message, color, bgcolor = None, font = None):
-        """Make a textbox displaying message.
-
-        message: A text string to be displayed.
-        color: The color to display the text with.
-        bgcolor: A color for the textbox. The textbox will be transparent if no color is given.
-        font: A font to use in the textbox. Will use the default font for the class if no other font is given.
-
-        returns the textbox as a rendered pygame font.
-        """
-
-        if font == None:
-            font = self._font
-        if bgcolor == None:
-            return font.render(message, True, color)
-        else:
-            return font.render(message, True, color, bgcolor)
-        
-    def makeGround(self):
+    def _makeGround(self):
         """Makes a (default) track for the game.
 
         Returns a list of the drawables that the track is made of.
@@ -110,13 +70,13 @@ class Game(object):
         areas.append(Line(320, RES_Y - 100, RES_X - 640, MARK_WIDTH, 0, MARK_COLOR))
         areas.append(Line(RES_X - 100, RES_Y - 320, RES_Y - 640, MARK_WIDTH, math.pi * 3 / 2, MARK_COLOR))
 
-        #make grass
+        #Make grass
         areas.append(Rectangle(RES_X - 600, RES_Y - 400, GREEN, 300, 200))
         areas.append(Rectangle(RES_X - 400, RES_Y - 600, GREEN, 200, 300))
         
         return areas
 
-    def makeObstacles(self):
+    def _makeObstacles(self):
         """Makes (default) obstacles for the game.
 
         Returns a list of the drawables representing these obstacles.
@@ -131,7 +91,7 @@ class Game(object):
 
         return obstacles
 
-    def makeCheckpoints(self):
+    def _makeCheckpoints(self):
         """Generate the (default) checkpoints that cars have to cross on each lap.
 
         Return a list of the checkpoint lines. The first element is supposed to be the start/finish line.
@@ -151,20 +111,54 @@ class Game(object):
 
         return cp
 
-    def makeScreen(self):
-        """Initializes and returns the pygame display (game window)."""
+    def makeMenu(self):
+        """Make a menu near the center of the screen. Will overwrite previously drawn objects."""
 
-        #Centering the display on screen (taken from pygame FAQ)
-        os.environ['SDL_VIDEO_CENTERED'] = '1'
+        #Lists of output
+        i = [('laps to go:'), ('fastest:'), ('latest:'), ('total time:')]
+        j = [str(self._car._laps), str(self._car._fastestLap), str(self._car._latestLap), str(self._car._totalLap)]
 
-        #Starting pygame and setting up the display(game window)
+        #Draw a background and a header for the menu
+        pygame.draw.rect(self._screen, LGRAY, (MENU_X, MENU_Y, MENU_W, MENU_H))
+        textbox = self.makeTextbox('Supercars', BLACK, font = makeFont(FONT, BIGSIZE))
+        self._screen.blit(textbox, (MENU_HEAD_X, MENU_HEAD_Y))
 
-        pygame.init()
-        gamescreen = pygame.display.set_mode((RES_X, RES_Y))
-        pygame.display.set_caption(CAPTION)
-  
-        return gamescreen
+        #Left column
+        item_posx = MENU_HEAD_X + 15
+        item_posy = MENU_COL_Y
 
+        for label in i:
+            textbox = self.makeTextbox(label, BLACK)
+            item_posy += 2 * textbox.get_height()
+            self._screen.blit(textbox, (item_posx, item_posy))
+
+        #Right column
+        item_posx += 80
+        item_posy = MENU_COL_Y
+
+        for info in j:
+            textbox = self.makeTextbox(info, WHITE, BLACK)
+            item_posy += 2 * textbox.get_height()
+            self._screen.blit(textbox, (item_posx, item_posy))            
+
+    def makeTextbox(self, message, color, bgcolor = None, font = None):
+        """Make a textbox displaying message.
+
+        message: A text string to be displayed.
+        color: The color to display the text with.
+        bgcolor: A color for the textbox. The textbox will be transparent if no color is given.
+        font: A font to use in the textbox. Will use the default font for the class if no other font is given.
+
+        returns the textbox as a rendered pygame font.
+        """
+
+        if font == None:
+            font = self._font
+        if bgcolor == None:
+            return font.render(message, True, color)
+        else:
+            return font.render(message, True, color, bgcolor)
+        
     def run(self):
         """Runs the game until there are no laps to go or the user terminates it.
 
@@ -179,8 +173,7 @@ class Game(object):
             #clearing the layer and redrawing the background
             pygame.draw.rect(self._screen, LGRAY, (0, 0, RES_X, RES_Y))
 
-            carlayer = rotate_center(self._car._layer,
-                                     -(self._car._rotation - CAR_ROTATION))
+            #Drawing the foreground/objects
             for area in self._ground:
                 area.draw(self._screen)
             for thing in self._obstacles:
@@ -189,8 +182,9 @@ class Game(object):
                 cp.draw(self._screen)
 
             self.makeMenu()
-                
-            self._screen.blit(carlayer, (self._car._pos.x, self._car._pos.y))
+            self._car.draw(self._screen)
+
+            #Wait for a while before updating the display window.
             self._clock.tick(FPS)
             pygame.display.update()
 

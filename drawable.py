@@ -1,6 +1,7 @@
 import pygame, sys, math
 from precode import Vector2D, intersect_rectangles, intersect_rectangle_line
 from config import *
+from library import *
 
 #Classes for drawable objects
 
@@ -274,12 +275,17 @@ class MovingObject(Drawable):
 
         self._pos += self._velocity
 
-    def collide(self, width, height, leftwall_x = 0, ceiling_y = 0):
+    def bounce(self, width, height, leftwall_x = 0, ceiling_y = 0):
         """Changes velocity and position of the object if it hits a wall.
 
         Currently assumes a rectangular object with _pos a Vector2D
         pointing to its upper left corner. It also produces approximate results
         for circular objects.
+        The arguments represents the boundaries of a room that contains the object.
+        The method should not be used if there's a chance that the object has moved
+        so far outside the boundaries that it's still outside after the adjustments.
+        If the moving object has a reasonable velocity compared to the dimensions of the room,
+        the method should work as intended.
 
         leftwall_x: Minimum x-component of the object's position
         ceiling_y:  Minimum y-component of the object's position
@@ -294,46 +300,49 @@ class MovingObject(Drawable):
         if isinstance(self, Circle):
             w = self._radius
             h = self._radius
-        else:
+        elif isinstance(self, Rectangle):
             w = self._w
-            h = self._w
+            h = self._h
+        else:
+            raise TypeError("The moving object must be a Rectangle or a Circle.")
             
-        if self._pos.x + w > width:
+        if self._pos.x <= leftwall_x:
             self._velocity.x *= -1
-            self._pos.x += self._velocity.x
+            self._pos.x = 2 * leftwall_x - self._pos.x
             collision = True
-        if self._pos.x < 0:
+        elif self._pos.x + w >= leftwall_x + width:
             self._velocity.x *= -1
-            self._pos.x += self._velocity.x
-            collision = True
-        if self._pos.y < 0:
+            self._pos.x = 2 * (leftwall_x + width) - (self._pos.x + 2 * w)
+            
+        if self._pos.y <= ceiling_y:
             self._velocity.y *= -1
-            self._pos.y += self._velocity.y
+            self._pos.y = 2 * ceiling_y - self._pos.y
             collision = True
-        if self._pos.y + h > height:
-            self._velocity.y *= -1	
-            self._pos.y += self._velocity.y
+        elif self._pos.y + h >= ceiling_y + height:
+            self._velocity.y *= -1
+            self._pos.y = 2 * (ceiling_y + height) - (self._pos.y + 2 * h)
             collision = True
 
         return collision
 
-
 class Supercar(Rectangle, MovingObject):
-    """a class for a supercar (moving sprite on a layer)"""
+    """A supercar (moving sprite on a layer)."""
 
     def __init__(self, pos, speed, color, width, length, rotation = 0,
                  wcolor = BLACK, bgcolor = TRANSPARENT):
-        """Setting up variables for the supercar.
+        """Create a supercar.
 
         pos:        A vector2D object pointing to the upper left corner of the
                     layer the car is going to be drawn onto.
-        speed:      A Vector2D object representing the car's velocity
+        speed:      A Vector2D object representing the car's velocity.
         color:      The color of the rectangle representing the car's body.
-        width:      The width of the car (must be less than length)
-        length:     The length of the car (and dimension of its surface)
+        width:      The width of the car (must be less than length).
+        length:     The length of the car (and dimension of its surface).
         rotation:   The direction the car is pointing in degrees. 0 means right,
-                    and positive numbers signifies clockwise rotation
-        bgcolor:    Background color of the surface the car is drawn onto."""
+                    and positive numbers signifies clockwise rotation.
+        wcolor:     The color of the car's wheels.
+        bgcolor:    Background color of the surface the car is drawn onto.
+        """
 
         if(width >= length):
             print("The supercar must have a height(length) greater than its width.")
@@ -341,38 +350,89 @@ class Supercar(Rectangle, MovingObject):
 
         self._width = width
         self._velocity = speed
+        self._rotation = rotation
+        self._wcolor = wcolor
+        self._bgcolor = bgcolor
+        
+        self._layer = self._makeLayer()
+        self._keys = self._makeControls()        
         self._thrust = False
         self._leftTurn = False
         self._rightTurn = False
-        self._rotation = rotation
-        self._bgcolor = bgcolor
-        self._wcolor = wcolor
-        self._layer = self.draw()
-        self._spawnlocation = self._pos
-        self._keys = self.makeControls()
-        self._running = False   #Wait for the player to start moving before starting the clock
-        self._laps = 10          #Laps to go
-        self._checkpoints = -1  #Index of latest checkpoint
-        self._frames = 0       #Number of frames for this lap
-        self._fastestLap = -1      #Fastest lap time
-        self._latestLap = 0       #Latest lap time
-        self._totalLap = 0      #Total lap time
+        
+        self._running = False       #Wait for the player to start moving before starting the clock
+        self._laps = 10             #Laps to go
+        self._checkpoints = -1      #Index of latest checkpoint
+        self._frames = 0            #Number of frames for this lap
+        self._fastestLap = -1       #Fastest lap time
+        self._latestLap = 0         #Latest lap time
+        self._totalLap = 0          #Total lap time
 
-    def draw(self):
+    def _makeLayer(self):
         """Generates a surface with the supercar drawn onto it.
 
-        returns the surface"""
+        Returns the surface.
+        """
 
         surface = pygame.Surface((self._w, self._h)).convert_alpha()
         surface.fill(self._bgcolor)
         self._drawWheels(surface)
         self._drawBody(surface)
-        #pygame.draw.polygon(surface, self._color, self._points)
 
         return surface
 
+    def _drawWheels(self, layer):
+        """Draws wheels.
+
+        layer: The surface being drawn to.
+        """
+
+        offset = self._h / 5
+        width = self._h / 6
+        border = self._w / 8  #To prevent the car from being misshaped when being rotated on the layer
+
+        pygame.draw.rect(layer, self._wcolor, (border, offset, self._w - 2 * border, width))
+        pygame.draw.rect(layer, self._wcolor, (border, self._h - (offset + width), self._w - 2 * border, width))
+
+    def _drawBody(self, layer):
+        """Draws the car's body.
+
+        layer: The surface being drawn to.
+        """
+
+        offset = self._w / 5
+        border = self._w / 8  #To prevent the car from being misshaped when being rotated on the layer
+
+        pygame.draw.rect(layer, self._color, (offset, border, self._w - 2 * offset, self._h - 2 * border))
+
+    def _makeControls(self):
+        """Generates a list containing the keys the player can use (as a tuple).
+
+        First element is a surface supposed to hold a key image.
+        Second element is text to accompany the image.
+        Third element is a pygame key constant for the corresponding key.
+        
+        Returns the list of tuples.
+        """
+
+        return ([(IMAGE, KEYTEXT[0], pygame.K_LEFT),
+                 (IMAGE, KEYTEXT[1], pygame.K_RIGHT),
+                 (IMAGE, KEYTEXT[2], pygame.K_UP)])
+
+    def draw(self, layer):
+        """Draws the car (actually draws the car's layer onto another layer).
+
+        layer: Layer to draw the car onto.
+        """
+
+        carlayer = rotate_center(self._layer, CAR_ROTATION - self._rotation)
+        layer.blit(carlayer, (self._pos.x, self._pos.y))
+
     def checkpoint(self, points):
-        """When intersecting with a checkpoint, handle appropriately"""
+        """Handles intersection between the car and a checkpoint.
+
+        points: A list of checkpoints that the car must cross in chronological order on every lap.
+        """
 
         self._frames += 1
 
@@ -403,38 +463,6 @@ class Supercar(Rectangle, MovingObject):
         #    if intersect_rectangle_line(self._pos, self._w, self._h,
         #                                points[i]._pos, points[i]._length, points[i]._angle):
         #        print(str(i))
-
-    def _drawWheels(self, layer):
-        """Draws wheels onto layer"""
-
-        offset = self._h / 5
-        width = self._h / 6
-        border = self._w / 8  #To prevent the car from being misshaped when being rotated on the layer
-
-        pygame.draw.rect(layer, self._wcolor, (border, offset, self._w - 2 * border, width))
-        pygame.draw.rect(layer, self._wcolor, (border, self._h - (offset + width), self._w - 2 * border, width))
-
-    def _drawBody(self, layer):
-        """Draws the car's body onto layer."""
-
-        offset = self._w / 5
-        border = self._w / 8  #To prevent the car from being misshaped when being rotated on the layer
-
-        pygame.draw.rect(layer, self._color, (offset, border, self._w - 2 * offset, self._h - 2 * border))
-
-    def makeControls(self):
-        """Generates a list containing the keys the player can use (as a tuple).
-
-        First element is a surface supposed to hold a key image
-        Second element is text to accompany the image
-        Third element is a pygame key constant for the corresponding key
-        
-        Returns the list of tuples.
-        """
-
-        return ([(IMAGE, KEYTEXT[0], pygame.K_LEFT),
-                 (IMAGE, KEYTEXT[1], pygame.K_RIGHT),
-                 (IMAGE, KEYTEXT[2], pygame.K_UP)])
 
     def update(self, anglespeed, speedlimit, keys, obstacles, checkpoints):
         """Updates the car's velocity and rotation based on user input and
@@ -472,7 +500,7 @@ class Supercar(Rectangle, MovingObject):
                         self._thrust = False
 
         if self._running:
-            self.bounce()
+            self.bounce(RES_X, RES_Y)
             self.collide(obstacles)
             self.checkpoint(checkpoints)
                     
@@ -496,7 +524,8 @@ class Supercar(Rectangle, MovingObject):
     def heading(self):
         """Determines the direction the car is pointing.
 
-        Returns a Vector2D object representing a unit vector in that direction."""
+        Returns a Vector2D object representing a unit vector in that direction.
+        """
 
         return (Vector2D(math.cos(self._rotation * math.pi / 180),
                          math.sin(self._rotation * math.pi / 180)))
@@ -528,24 +557,3 @@ class Supercar(Rectangle, MovingObject):
                             self._pos = self._pos - self._velocity
                             self._velocity *= -1
                             break
-
-    def bounce(self):
-        """Changes the velocity of the supercar when hitting the screen boundary. Returns True if changed, False otherwise."""
-
-        if self._pos.x < 0:
-            self._velocity.x *= -1
-            self._pos.x *= -1
-            #self._thrust = False    #Make sure that the player can't accelerate directly after an impact
-        elif self._pos.x > RES_X - self._w:
-            self._velocity.x *= -1
-            self._pos.x = (2 * (RES_X - self._w)) - self._pos.x
-            #self._thrust = False
-
-        if self._pos.y < 0:
-            self._velocity.y *= -1
-            self._pos.y *= -1
-            #self._thrust = False
-        elif self._pos.y > RES_Y - self._h:
-            self._velocity.y *= -1
-            self._pos.y = (2 * (RES_Y - self._h)) - self._pos.y
-            #self._thrust = False
