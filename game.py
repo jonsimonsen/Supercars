@@ -1,9 +1,18 @@
+#Imports
+
+##External
 import pygame, sys, os, math
 from pygame.locals import *
-from drawable import *
-from config import *
-from library import *
 from precode import Vector2D
+
+##General methods
+from library import *
+
+##Classes and global constants
+from supercar import *
+from drawable import *
+from drawconf import *
+from config import *
 
 #Since several of the methods in the Game class could be used in several games,
 #it's an idea to make a base class that this one can inherit from.
@@ -23,8 +32,10 @@ class Game(object):
         self._font = makeFont(FONT, FONTSIZE)       #Create a standard font
 
         #Make a car for the player
-        self._car = Supercar(Vector2D(int((RES_X - WIDTH) / 2) + 40, 80),
-                             Vector2D(0, 0), RED, WIDTH, LENGTH, 180, bgcolor = WHITE)
+        keys = self._makeControls()
+        self._car = Supercar(Vector2D(int(RES_X / 2 + WIDTH), int((ROAD_WIDTH - WIDTH) / 2)),
+                             Vector2D(0, 0), SPEEDLIMIT, RED, WIDTH, LENGTH, Rectangle(RES_X, RES_Y, TRANSPARENT),
+                             keys, CAR_ROTATION, bgcolor = WHITE)
 
         self.run()  #Run the game
 
@@ -111,20 +122,35 @@ class Game(object):
 
         return cp
 
+    def _makeControls(self):
+        """Generates a list containing the keys the player can use (as a tuple).
+
+        First element is a surface supposed to hold a key image.
+        Second element is text to accompany the image.
+        Third element is a pygame key constant for the corresponding key.
+        
+        Returns the list of tuples.
+        """
+
+        return ([(IMAGE, KEYTEXT[0], pygame.K_LEFT),
+                 (IMAGE, KEYTEXT[1], pygame.K_RIGHT),
+                 (IMAGE, KEYTEXT[2], pygame.K_UP)])
+
     def makeMenu(self):
         """Make a menu near the center of the screen. Will overwrite previously drawn objects."""
 
         #Lists of output
         i = [('laps to go:'), ('fastest:'), ('latest:'), ('total time:')]
-        j = [str(self._car._laps), str(self._car._fastestLap), str(self._car._latestLap), str(self._car._totalLap)]
+        j = [str(self._car._laps), str(framesToSec(self._car.getFastestLap(), FPS)),
+             str(framesToSec(self._car.getLatestLap(), FPS)), str(framesToSec(self._car.getTotalLap(), FPS))]
 
         #Draw a background and a header for the menu
         pygame.draw.rect(self._screen, LGRAY, (MENU_X, MENU_Y, MENU_W, MENU_H))
-        textbox = self.makeTextbox('Supercars', BLACK, font = makeFont(FONT, BIGSIZE))
+        textbox = self.makeTextbox(CAPTION, BLACK, font = makeFont(FONT, BIGSIZE))
         self._screen.blit(textbox, (MENU_HEAD_X, MENU_HEAD_Y))
 
         #Left column
-        item_posx = MENU_HEAD_X + 15
+        item_posx = MENU_COL_X
         item_posy = MENU_COL_Y
 
         for label in i:
@@ -133,7 +159,7 @@ class Game(object):
             self._screen.blit(textbox, (item_posx, item_posy))
 
         #Right column
-        item_posx += 80
+        item_posx += COLSPAN
         item_posy = MENU_COL_Y
 
         for info in j:
@@ -168,7 +194,7 @@ class Game(object):
         running = True
 
         while running:
-            running = self._car.update(ROTATION_STEP, SPEEDLIMIT, self._car._keys, self._obstacles, self._checkpoints)
+            running = self._car.update(ROTATION_STEP, self._obstacles, self._checkpoints)
  
             #clearing the layer and redrawing the background
             pygame.draw.rect(self._screen, LGRAY, (0, 0, RES_X, RES_Y))
@@ -187,8 +213,6 @@ class Game(object):
             #Wait for a while before updating the display window.
             self._clock.tick(FPS)
             pygame.display.update()
-
-            self._car.move()
 
         #Make sure the user can see the final results
         self._clock.tick(QPS)

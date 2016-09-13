@@ -1,7 +1,9 @@
 """A collection of functions. Originally used in the game "Mayhem in space".
 
 Created by Jon Simonsen
-Current version dated 26 April 2013
+Initial version dated 26 April 2013
+
+13.09.16: Added framesToSec (jsi)
 """
 
 import pygame
@@ -30,3 +32,14 @@ def rotate_center(layer, angle):
     rectangle.center = newlayer.get_rect().center
     newlayer = newlayer.subsurface(rectangle)
     return newlayer
+
+def framesToSec(frames, fps):
+    """Convert a number of frames to a number of seconds with two decimals.
+
+    frames: The number of frames
+    fps: Frames per second
+
+    Returns the number of seconds it takes to display the frames (as a float).
+    """
+
+    return round((frames / fps), 2)

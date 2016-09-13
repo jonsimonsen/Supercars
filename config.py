@@ -7,7 +7,7 @@ from drawconf import *
 RES_X = 1280
 RES_Y = 960
 CAPTION = 'Supercars'
-CREDITS = 'by JSI'
+#CREDITS = 'by JSI'
 FONT = 'arial'
 FONTSIZE = 16
 BIGSIZE = 32
@@ -20,25 +20,28 @@ MENU_W = 300
 MENU_H = 200
 MENU_HEAD_X = MENU_X + 75
 MENU_HEAD_Y = MENU_Y + 10
+MENU_COL_X = MENU_HEAD_X + 15
 MENU_COL_Y = MENU_HEAD_Y + 10
+COLSPAN = 80
+
+#Keys
+
+KEYTEXT = ['turn left', 'turn right', 'thrust']
+IMAGE = 0
 
 #Supercar
 
 SPEEDLIMIT = 10
 WIDTH = 40
 LENGTH = 50
-CAR_ROTATION = 270
+CAR_ROTATION = 180
 ROTATION_STEP = 10  #Degrees per cycle of player input
 
 #Tracks
 
 MARK_COLOR = WHITE
 MARK_WIDTH = 4
-
-#Keys
-
-KEYTEXT = ['turn left', 'turn right', 'thrust']
-IMAGE = 0
+ROAD_WIDTH = 200
 
 #Animation
 

@@ -1,12 +1,18 @@
 # Supercars
-Planning to make a small top down racing game without scrolling
+A small top down racing game without scrolling
 
 # Implementation
 The game is being programmed in Python, using the PyGame library
 
-# Information
-The game cannot be run currently. One of the necessary libraries will possibly not be uploaded until I've clarified with the author that it's ok. </br>
-In either case, the game so far involves being able to drive a shape that resembles a car around in an otherwise empty window. </br>
+# Running
+Run from terminal by navigating to the folder containing the py files and typing: <br />
+  python game.py <br /> <br />
+Use the arrow keys to control the car. <br />
+  
+# Customization
+It is possible to change some of the characteristics of the game by altering config.py. <br />
+Be aware that some changes can mess up the game to a certain degree, <br />
+and that lap times will not necessarily be comparable before and after. <br />
 
 # History
 v0_1: </br>
@@ -32,3 +38,11 @@ Issues: </br>
 v0_25: </br>
   -Added total time to the menu. </br>
   -Received permission to upload a Vector library that allows the game to actually be played (precode.py). </br>
+  
+v0_3: </br>
+  -Cleaned up the code considerably. </br>
+  -The race ends with a small delay after the last lap has been finished. </br>
+  -Removed some outdated info from this document. </br>
+  
+Issues: </br>
+  -highscore, better game physics, more tracks, opponents

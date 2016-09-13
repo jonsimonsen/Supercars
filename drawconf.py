@@ -1,3 +1,5 @@
+#Global constants for drawables.
+
 #Colors
 
 RED     = (255,  0,  0)
