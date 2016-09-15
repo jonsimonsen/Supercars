@@ -54,7 +54,7 @@ class Supercar(Rectangle, MovingObject):
         self._rightTurn = False
         
         self._running = False       #Wait for the player to start moving before starting the clock
-        self._laps = 10             #Laps to go
+        self._laps = 3              #Laps to go
         self._lastCP = -1           #Index of latest checkpoint
         self._frames = 0            #Number of frames for this lap
         self._fastestLap = 0        #Fastest lap time

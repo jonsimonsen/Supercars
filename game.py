@@ -1,7 +1,7 @@
 #Imports
 
 ##External
-import pygame, sys, os, math
+import pygame, sys, os, math, time
 from pygame.locals import *
 from precode import Vector2D
 
@@ -23,6 +23,8 @@ class Game(object):
     def __init__(self):
         """Create a new game of Supercars."""
 
+        self._player = self._makePlayer()           #Prompt the user for a name
+        self._track = DEF_TRACK                     #Using a default track until the game gets more advanced
         self._screen = self._makeScreen()           #Initialize game window
         self._clock = pygame.time.Clock()           #Initialising game clock(used to make the animation run smoothly)
         
@@ -38,6 +40,21 @@ class Game(object):
                              keys, CAR_ROTATION, bgcolor = WHITE)
 
         self.run()  #Run the game
+
+    def _makePlayer(self):
+        """Prompts the player for a name, and returns it. Does not support names longer than 16 characters."""
+
+        name = input('Please enter your name (max. %d characters):' % MAX_NAMELEN)
+
+        #If the name is too long, discard the last part
+        if len(name) > MAX_NAMELEN:
+            name = name[:MAX_NAMELEN]
+        elif len(name) < 1:
+            name = DEF_NAME
+
+        print('Welcome, %s' % name)
+        time.sleep(DISPLAY_DELAY)
+        return name
 
     def _makeScreen(self):
         """Initializes and returns the pygame display (game window)."""
@@ -214,9 +231,71 @@ class Game(object):
             self._clock.tick(FPS)
             pygame.display.update()
 
+        self._updateScores()
+
         #Make sure the user can see the final results
         self._clock.tick(QPS)
         return
+
+    def _updateScores(self):
+        """Update high score lists if necessary."""
+
+        candidate = self._car.getTotalLap()
+        pos = 0
+        lines = list()
+        filename = 'Tracks/' + self._track + '_hi.txt'
+        readFile = open(filename)
+
+        for line in readFile:
+            if candidate >= int(line.split()[0]):
+                pos += 1
+            lines.append(line)
+            print('-' + line + '-')
+
+        if pos < MAX_SCORES:
+            lines.insert(pos, '{:6d} {:s}\n'.format(candidate, self._player))
+
+        self._showScores(lines, pos)
+        readFile.close()
+
+        #Write scores to the files
+        writeFile = open(filename, 'w')
+
+        for line in lines[:10]:
+            writeFile.write(line)
+
+        writeFile.close()
+
+    def _showScores(self, lines, pos):
+        """Show the high scores.
+
+        lines: A list of lines that contain highscores with a given format.
+        pos: The position of a new score (if none, this should be equal to MAX_SCORES)
+
+        The first element in the line, should be the total number of frames.
+        The second should be the name of the player.
+        """
+
+        #Draw a background and a header for the menu
+        pygame.draw.rect(self._screen, LGRAY, (MENU_X, MENU_Y, MENU_W, MENU_H))
+        textbox = self.makeTextbox((SCORE_CAPT + self._track + ':'), BLACK)
+        self._screen.blit(textbox, (MENU_HEAD_X, MENU_HEAD_Y))
+        count = 0
+        for line in lines[:10]:
+            frames = line[0:6]
+            name = line[7:23]
+            
+            if count == pos:
+                leftbox = self.makeTextbox(name, YELLOW, BLACK)
+                rightbox = self.makeTextbox('{:5.2f}'.format(framesToSec(int(frames), FPS)), YELLOW, BLACK)
+            else:
+                leftbox = self.makeTextbox(name, WHITE, BLACK)
+                rightbox = self.makeTextbox('{:5.2f}'.format(framesToSec(int(frames), FPS)), WHITE, BLACK)
+                
+            self._screen.blit(leftbox, (MENU_COL_X, MENU_COL_Y + (count + 1) * int(1.2 * textbox.get_height())))
+            self._screen.blit(rightbox, (MENU_COL_X + COLSPAN, MENU_COL_Y + (count + 1) * int(1.2 * textbox.get_height())))
+            count += 1
+        pygame.display.update()
 
 if __name__ == '__main__':
     game = Game()
