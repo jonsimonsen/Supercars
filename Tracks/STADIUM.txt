@@ -1,0 +1,6 @@
+STADIUM
+
+#asphalt
+GREEN
+C 	300		300  	300	 	BLACK
+R 	RES_X - 600 	200 	BLACK 	300 	0

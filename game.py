@@ -25,6 +25,7 @@ class Game(object):
 
         self._player = self._makePlayer()           #Prompt the user for a name
         self._track = DEF_TRACK                     #Using a default track until the game gets more advanced
+        self._makeTrack()
         self._screen = self._makeScreen()           #Initialize game window
         self._clock = pygame.time.Clock()           #Initialising game clock(used to make the animation run smoothly)
         
@@ -36,7 +37,7 @@ class Game(object):
         #Make a car for the player
         keys = self._makeControls()
         self._car = Supercar(Vector2D(int(RES_X / 2 + WIDTH), int((ROAD_WIDTH - WIDTH) / 2)),
-                             Vector2D(0, 0), SPEEDLIMIT, RED, WIDTH, LENGTH, Rectangle(RES_X, RES_Y, TRANSPARENT),
+                             Vector2D(0, 0), SPEEDLIMIT, eval(self._val), WIDTH, LENGTH, Rectangle(RES_X, RES_Y, TRANSPARENT),
                              keys, CAR_ROTATION, bgcolor = WHITE)
 
         self.run()  #Run the game
@@ -69,6 +70,19 @@ class Game(object):
         pygame.display.set_caption(CAPTION)
   
         return gamescreen
+
+    def _makeTrack(self):
+        """Makes the track by reading it from file."""
+
+        fileName = 'Tracks/' + self._track + '.txt'
+        trackFile = open(fileName)
+        line = ''
+
+        while(line[:8] != '#asphalt'):
+            line = trackFile.readline()
+
+        nextLine = trackFile.readline()
+        self._val = nextLine[:5]
 
     def _makeGround(self):
         """Makes a (default) track for the game.
