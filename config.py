@@ -6,6 +6,7 @@ from drawconf import *
 
 RES_X = 1280
 RES_Y = 960
+MID_X = RES_X / 2
 CAPTION = 'Supercars'
 #CREDITS = 'by JSI'
 FONT = 'arial'
@@ -53,6 +54,6 @@ QPS = 1.0 / 10      #FPS after finishing the race
 
 MAX_NAMELEN = 16
 DEF_NAME = 'Anonymous'
-DEF_TRACK = 'STADIUM'
+DEF_TRACK = 'BERMUDA'
 MAX_SCORES = 10
 SCORE_CAPT = 'High scores for '

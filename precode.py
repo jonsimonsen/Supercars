@@ -5,6 +5,9 @@
 Based on (an earlier version of) code that can be found at:
 https://source.uit.no/ifi-courses/inf-1400-2016-resources/blob/master/assignments/assignment1/precode.py
 
+28 September 2016 Revision 6 (Jon Simonsen)
+Added shiftQuadrant and getAngle methods to the vector class.
+
 September 2016 Revision 5 (Jon Simonsen)
 Added intersect_rectangle_line method. Can probably be optimized and tested better.
 
@@ -75,7 +78,58 @@ class Vector2D(object):
     def copy(self):
         """ Returns a copy of the vector. """
         return Vector2D(self.x, self.y)
-        
+
+    def shiftQuadrant(self, quadrants):
+        """ Returns a vector of the same magnitude, but flipped into a different quadrant.
+
+        quadrants: The number of quadrants to shift the vector (the range should be from 0 to 4)
+        0: No change
+        1: flip a coordinate (shifting 1 quadrant clockwise)
+        2: flip both coordinates
+        3: flip a coordinate (shifting 1 quadrant counter-clockwise)
+
+        Since the y-axis points downwards, the argument is the number of quadrants to shift clockwise.
+        (In a classic coordinate system, quadrant numbering increase counter-clockwise).
+
+        """
+
+        #The function will not change the vector if it is not inside any sector
+        if self.x == 0 or self.y == 0:
+            return self.copy()
+
+        #Make sure that sector corresponds to the number of sectors the vector will be shifted clockwise
+        if(self.x < 0 and self.y > 0) or (self.x > 0 and self.y < 0):
+            if quadrants == 1 or quadrants == 3:
+                quadrants = 4 - quadrants
+
+        if quadrants == 0:
+            return self.copy()
+        elif quadrants == 1:
+            return Vector2D(-self.x, self.y)
+        elif quadrants == 2:
+            return Vector2D(-self.x, -self.y)
+        elif quadrants == 3:
+            return Vector2D(self.x, -self.y)
+        else:
+            raise ValueError("swapSector expects an argument with value 0, 1, 2 or 3.")
+
+    def getAngle(self):
+        """ Returns the angle the vector points in (clockwise relative to positive x). """
+
+        if self.x == 0:
+            if self.y >= 0:
+                return math.pi / 2
+            else:
+                return 3 * math.pi / 2
+
+        if self.x < 0:
+            delta = math.pi
+        elif self.y < 0:
+            delta = math.pi * 2
+        else:
+            delta = 0
+
+        return delta + math.atan(self.y / self.x)
         
 def intersect_rectangle_circle(rec_pos, sx, sy, circle_pos, circle_radius, circle_speed):
     """ Determine if a rectangle and a circle intersects.

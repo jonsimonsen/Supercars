@@ -29,7 +29,7 @@ class Game(object):
         self._screen = self._makeScreen()           #Initialize game window
         self._clock = pygame.time.Clock()           #Initialising game clock(used to make the animation run smoothly)
         
-        self._ground = self._makeGround()           #Create background
+        #self._ground = self._makeGround()           #Create background
         self._obstacles = self._makeObstacles()     #Create obstacles
         self._checkpoints = self._makeCheckpoints() #Create checkpoints
         self._font = makeFont(FONT, FONTSIZE)       #Create a standard font
@@ -37,7 +37,7 @@ class Game(object):
         #Make a car for the player
         keys = self._makeControls()
         self._car = Supercar(Vector2D(int(RES_X / 2 + WIDTH), int((ROAD_WIDTH - WIDTH) / 2)),
-                             Vector2D(0, 0), SPEEDLIMIT, eval(self._val), WIDTH, LENGTH, Rectangle(RES_X, RES_Y, TRANSPARENT),
+                             Vector2D(0, 0), SPEEDLIMIT, RED, WIDTH, LENGTH, Rectangle(RES_X, RES_Y, TRANSPARENT),
                              keys, CAR_ROTATION, bgcolor = WHITE)
 
         self.run()  #Run the game
@@ -81,8 +81,81 @@ class Game(object):
         while(line[:8] != '#asphalt'):
             line = trackFile.readline()
 
+        acolor = eval(trackFile.readline().rstrip())
         nextLine = trackFile.readline()
-        self._val = nextLine[:5]
+        areas = list()
+        alen = Vector2D(0, 0)
+        awid = 0
+
+        while(nextLine[:6] != '#marks'):
+            elems = list(filter(None, nextLine.split('\t')))
+            if elems:
+                if elems[0] == 'C':
+                    print(elems[1], elems[2], elems[3])
+                    areas.append(Circle(eval(elems[1]), eval(elems[2]), int(elems[3]), acolor))
+                elif elems[0] == 'R':
+                    areas.append(Rectangle(eval(elems[1]), eval(elems[2]), acolor, eval(elems[3]), eval(elems[4])))
+                elif elems[0][0] == 'L':
+                    llen = alen.shiftQuadrant(int(elems[0][1]))
+                    lscale = (aoff + (awid / 2)) / llen.magnitude()
+                    if elems[0][2] == 'l':
+                        dx = -(llen.y * lscale)
+                        dy = llen.x * lscale
+                    elif elems[0][2] == 'r':
+                        dx = llen.y * lscale
+                        dy = -(llen.x * lscale)
+                    else:
+                        pass
+                    areas.append(Line(eval(elems[1]) + dx, eval(elems[2]) + dy, llen.magnitude(), awid, llen.getAngle(), acolor))
+                elif elems[0] == 'len':
+                    alen = Vector2D(eval(elems[1]), eval(elems[2]))
+                elif elems[0] == 'wid':
+                    awid = int(elems[1])
+                elif elems[0] == 'off':
+                    aoff = int(elems[1])
+                else:
+                    #Should throw some exception/error
+                    pass
+            nextLine = trackFile.readline()
+
+        mcolor = eval(trackFile.readline().rstrip())
+        mwidth = eval(trackFile.readline().rstrip())
+        nextLine = trackFile.readline()
+
+        while(nextLine[:6] != '#grass'):
+            elems = list(filter(None, nextLine.split('\t')))
+            if elems:
+                if elems[0] == 'A':
+                    print(elems[1], elems[2], elems[3], elems[4], elems[5])
+                    areas.append(Arc(eval(elems[1]), eval(elems[2]), int(elems[3]) + mwidth / 2, mwidth, int(elems[4]) * math.pi / 2,
+                                     int(elems[5]) * math.pi / 2, mcolor))
+                elif elems[0] == 'L':
+                    areas.append(Line(eval(elems[1]), eval(elems[2]), eval(elems[3]), mwidth, int(elems[4]) * math.pi / 2, mcolor))
+                else:
+                    #error/exception
+                    pass
+
+            nextLine = trackFile.readline()
+
+        gcolor = eval(trackFile.readline().rstrip())
+        nextLine = trackFile.readline()
+
+        while(nextLine[:10] != '#obstacles'):
+            elems = list(filter(None, nextLine.split('\t')))
+            if elems:
+                if elems[0] == 'R':
+                    areas.append(Rectangle(eval(elems[1]), eval(elems[2]), gcolor, int(elems[3]), int(elems[4])))
+                else:
+                    #error/exception
+                    pass
+
+            nextLine = trackFile.readline()
+
+        self._ground = areas
+
+        #Make obstacles and checkpoints...
+        
+        trackFile.close()
 
     def _makeGround(self):
         """Makes a (default) track for the game.
@@ -130,6 +203,7 @@ class Game(object):
         obstacles.append(Circle(300, RES_Y - 300, 100, BLUE))
         obstacles.append(Circle(RES_X - 300, RES_Y - 300, 100, BLUE))
         obstacles.append(Circle(RES_X - 300, 300, 100, BLUE))
+        obstacles.append(Circle(MID_X, RES_Y - 300, 100, BLUE))
 
         return obstacles
 
@@ -297,7 +371,7 @@ class Game(object):
         count = 0
         for line in lines[:10]:
             frames = line[0:6]
-            name = line[7:23]
+            name = line[7:23].rstrip()
             
             if count == pos:
                 leftbox = self.makeTextbox(name, YELLOW, BLACK)

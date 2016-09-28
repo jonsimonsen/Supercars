@@ -181,9 +181,22 @@ class Line(Drawable):
         layer: The surface being drawn to.
         """
 
-        pygame.draw.line(layer, self._color, (self._pos.x, self._pos.y),
-                         (self._pos.x + math.cos(self._angle) * self._length, self._pos.y + math.sin(self._angle)*self._length),
-                         self._width)
+        #pygame.draw.line(layer, self._color, (self._pos.x, self._pos.y),
+        #                 (self._pos.x + math.cos(self._angle) * self._length, self._pos.y + math.sin(self._angle) * self._length),
+        #                 self._width)
+        scale = (self._width / 2) / self._length
+        dx = math.cos(self._angle) * self._length
+        dy = math.sin(self._angle) * self._length
+        sfx = self._pos.x - (dy * scale)
+        sfy = self._pos.y + (dx * scale)
+        slx = self._pos.x + (dy * scale)
+        sly = self._pos.y - (dx * scale)
+        ffx = sfx + dx
+        ffy = sfy + dy
+        flx = slx + dx
+        fly = sly + dy
+
+        pygame.draw.polygon(layer, self._color, [(sfx, sfy), (ffx, ffy), (flx, fly), (slx, sly)])
 
     def getLength(self):
         """Getter for _length."""
