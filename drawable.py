@@ -231,7 +231,7 @@ class Arc(Drawable):
         posx, posy: x and y-components for the center point.
         length:     Length from the centre point to the arc.
         width:      Width of the arc. Grows towards the center point.
-        angle:      Clockwise angle relative to positive x for the start of the arc.
+        angle:      Counter-clockwise angle relative to positive x for the start of the arc.
         span:       Number of radians the arc spans across.
         color:      Color of the arc.
         """

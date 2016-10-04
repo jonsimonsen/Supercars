@@ -71,6 +71,63 @@ class Game(object):
   
         return gamescreen
 
+    def _readSection(self, file, endWord, mask = 15):
+        """Reads lines from the file until endWord is encountered at the start of a line.
+
+        file: The file to read from.
+        endWord: The string that should signify the end of the current section of the file.
+        mask: A number that determines what kind of drawables are allowed within the section.
+
+        The mask should be computed by giving the drawables these weights: Rectangle-8, Circle-4, Line-2, Arc-1.
+        The default value allows all drawables (8+4+2+1).
+
+        Returns a list containing the drawables that were read from the file.
+        """
+
+        if mask > 15 or mask <= 0:
+            return list()
+
+        color = eval(file.readline().rstrip())
+        width = eval(file.readline().rstrip())
+        offset = 0
+        length = Vector2D(0, 0)
+        drawables = list()
+        nextLine = file.readline()
+
+        while(nextLine[:len(endWord)] != endWord):
+            elems = list(filter(None, nextLine.split('\t')))
+
+            #Process the elements/convert them into drawables
+            if elems:
+                if elems[0] == 'A' and (mask % 2 == 1):
+                    drawables.append(Arc(eval(elems[1]), eval(elems[2]), offset + width / 2, width, int(elems[3]) * math.pi / 2,
+                                         int(elems[4]) * math.pi / 2, color))
+                elif elems[0] == 'L' and (mask % 4 > 1):
+                    if(length.magnitude() != 0):
+                        llen = length.shiftQuadrant(int(elems[0][1]))
+                        lscale = (offset + (width / 2)) / llen.magnitude()
+
+                        if elems[0][2] == 'l':
+                            dx = -(llen.y * lscale)
+                            dy = llen.x * lscale
+                        elif elems[0][2] == 'r':
+                            dx = llen.y * lscale
+                            dy = -(llen.x * lscale)
+
+                        drawables.append(Line(eval(elems[1]) + dx, eval(elems[2]) + dy, llen.magnitude(), width, llen.getAngle(), color))
+                elif elems[0] == 'C' and (mask % 8 > 3):
+                    areas.append(Circle(eval(elems[1]), eval(elems[2]), width + offset, color))
+                elif elems[0] == 'R' and (mask >= 8):
+                    pass
+                elif elems[0] == 'len':
+                    length = Vector2D(eval(elems[1]), eval(elems[2]))
+                elif elems[0] == 'off':
+                    offset = int(elems[1])
+
+            #Read the next line
+            nextLine = file.readline()
+                
+
     def _makeTrack(self):
         """Makes the track by reading it from file."""
 
@@ -82,17 +139,17 @@ class Game(object):
             line = trackFile.readline()
 
         acolor = eval(trackFile.readline().rstrip())
+        awid = eval(trackFile.readline().rstrip())
         nextLine = trackFile.readline()
         areas = list()
         alen = Vector2D(0, 0)
-        awid = 0
 
         while(nextLine[:6] != '#marks'):
             elems = list(filter(None, nextLine.split('\t')))
             if elems:
                 if elems[0] == 'C':
-                    print(elems[1], elems[2], elems[3])
-                    areas.append(Circle(eval(elems[1]), eval(elems[2]), int(elems[3]), acolor))
+                    print(elems[1], elems[2])
+                    areas.append(Circle(eval(elems[1]), eval(elems[2]), awid + aoff, acolor))
                 elif elems[0] == 'R':
                     areas.append(Rectangle(eval(elems[1]), eval(elems[2]), acolor, eval(elems[3]), eval(elems[4])))
                 elif elems[0][0] == 'L':
